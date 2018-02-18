@@ -131,8 +131,16 @@ object Lab3 extends JsyApplication with Lab3Like {
           case Minus => N(toNumber(eval(env,e1))-toNumber(eval(env,e2)))
           case Times => N(toNumber(eval(env,e1))*toNumber(eval(env,e2)))
           case Div => N(toNumber(eval(env,e1))/toNumber(eval(env,e2)))
-          case Eq => B(eval(env,e1) == eval(env,e2))
-          case Ne => B(eval(env,e1) != eval(env,e2))
+          case Eq => (e1,e2) match{
+            case (_,Function(_,_,_)) => throw new DynamicTypeError(e)
+            case (Function(_,_,_),_) => throw new DynamicTypeError(e)
+            case _ =>B(eval(env,e1) == eval(env,e2))
+          }
+          case Ne => (e1,e2) match{
+            case (_,Function(_,_,_)) => throw new DynamicTypeError(e)
+            case (Function(_,_,_),_) => throw new DynamicTypeError(e)
+            case _ =>B(eval(env,e1) != eval(env,e2))
+          }
           case Gt|Lt|Ge|Le => B(inequalityVal(bop,e1,e2))
           case Seq => {
             eval(env,e1)
@@ -160,6 +168,7 @@ object Lab3 extends JsyApplication with Lab3Like {
 
         }
       }
+
       case _ => ??? // delete this line when done
     }
   }
@@ -168,7 +177,7 @@ object Lab3 extends JsyApplication with Lab3Like {
   /* Small-Step Interpreter with Static Scoping */
 
   def iterate(e0: Expr)(next: (Expr, Int) => Option[Expr]): Expr = {
-    def loop(e: Expr, n: Int): Expr = ???
+    def loop(e: Expr, n: Int): Expr = if(isValue(e)) e else loop(step(e),n+1)
     loop(e0, 0)
   }
   
@@ -194,7 +203,30 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
         // ****** Your cases here
-      
+      case Unary(Neg,v1) => N(-toNumber(v1))
+      case Unary(Not,v1) => B(!toBoolean(v1))
+      case Binary(Seq,v1,e2) => {
+        v1
+        e2
+      }
+      case Binary(Plus,v1,v2) => {
+        (v1,v2) match{
+          case (S(s),_) => S(s+toStr(v2))
+          case (_,S(s)) => S(toStr(v1)+s)
+          case _ =>N(toNumber(v1)+toNumber(v2))
+        }
+      }
+      case Binary(Minus,v1,v2) => N(toNumber(v1)-toNumber(v2))
+      case Binary(Times,v1,v2) => N(toNumber(v1)*toNumber(v2))
+      case Binary(Div,v1,v2) => N(toNumber(v1)/toNumber(v2))
+      case Binary(bop@(Gt|Ge|Lt|Le),v1,v2) => B(inequalityVal(bop,v1,v2))
+      case Binary(Eq,v1,v2) => B(v1==v2)
+      case Binary(Ne,v1,v2) => B(v1!=v2)
+      case Binary(And,v1,e2) => if(toBoolean(v1)) e2 else v1
+      case Binary(Or,v1,e2) => if(toBoolean(v1)) v1 else e2
+      case If(v1,e2,e3) => if(toBoolean(v1)) e2 else e3
+      //case ConstDecl()
+
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
       
