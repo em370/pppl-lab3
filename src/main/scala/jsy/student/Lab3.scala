@@ -42,10 +42,10 @@ object Lab3 extends JsyApplication with Lab3Like {
     require(isValue(v))
     (v: @unchecked) match {
       case N(n) => n
-      case B(false) => ???
-      case B(true) => ???
-      case Undefined => ???
-      case S(s) => ???
+      case B(false) => 0
+      case B(true) => 1
+      case Undefined => 0
+      case S(s) => s.toDouble
       case Function(_, _, _) => Double.NaN
     }
   }
@@ -55,7 +55,9 @@ object Lab3 extends JsyApplication with Lab3Like {
     (v: @unchecked) match {
       case B(b) => b
       case Function(_, _, _) => true
-      case _ => ??? // delete this line when done
+      case N(n) => if(n==0 || n.isNaN) false else true
+      case Undefined => false
+      case S(s) => if(s=="") false else true
     }
   }
   
@@ -66,7 +68,11 @@ object Lab3 extends JsyApplication with Lab3Like {
         // Here in toStr(Function(_, _, _)), we will deviate from Node.js that returns the concrete syntax
         // of the function (from the input program).
       case Function(_, _, _) => "function"
-      case _ => ??? // delete this line when done
+      case B(true)=>"true"
+      case B(false)=> "false"
+      case Undefined => "undefined"
+      case N(n) => if(n.isWhole()) n.toInt.toString else n.toString
+
     }
   }
 
@@ -82,6 +88,7 @@ object Lab3 extends JsyApplication with Lab3Like {
     require(isValue(v2))
     require(bop == Lt || bop == Le || bop == Gt || bop == Ge)
     (v1, v2) match {
+      case (S(s),_) | (S(s),_) =>
       case _ => ??? // delete this line when done
     }
   }
