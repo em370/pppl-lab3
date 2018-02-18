@@ -88,8 +88,23 @@ object Lab3 extends JsyApplication with Lab3Like {
     require(isValue(v2))
     require(bop == Lt || bop == Le || bop == Gt || bop == Ge)
     (v1, v2) match {
-      case (S(s),_) | (S(s),_) =>
-      case _ => ??? // delete this line when done
+      case (S(s1),S(s2))=> {
+        bop match {
+          case Lt => s1<s2
+          case Le => s1<=s2
+          case Gt => s1>s2
+          case Ge => s1>=s2
+        }
+      }
+      case _ => {
+        val (x1, x2) = (toNumber(v1),toNumber(v2))
+        bop match {
+          case Lt => x1<x2
+          case Le => x1<=x2
+          case Gt => x1>x2
+          case Ge => x1>=x2
+        }
+      } // delete this line when done
     }
   }
 
@@ -103,7 +118,34 @@ object Lab3 extends JsyApplication with Lab3Like {
     e match {
       /* Base Cases */
       case N(_) | B(_) | S(_) | Undefined | Function(_, _, _) => e
-      case Var(x) => ???
+      case Var(x) => lookup(env,x)
+      case ConstDecl(x,e1,e2) =>eval(extend(env,x,eval(env,e1)),e2)
+      case Binary(bop,e1,e2) => {
+        bop match{
+          case And => if(toBoolean(eval(env,e1))) eval(env,e2) else eval(env,e1)
+          case Or => if(toBoolean(eval(env,e1))) eval(env,e1) else eval(env,e2)
+          case Plus => (eval(env,e1),eval(env,e2)) match{
+            case (S(_),_)| (_,S(_)) => S(toStr((eval(env,e1)))+toStr((eval(env,e2))))
+            case (_,_) => N(toNumber(eval(env,e1)) + toNumber((eval(env,e2))))
+          }
+          case Minus => N(toNumber(eval(env,e1))-toNumber(eval(env,e2)))
+          case Times => N(toNumber(eval(env,e1))*toNumber(eval(env,e2)))
+          case Div => N(toNumber(eval(env,e1))/toNumber(eval(env,e2)))
+          case Eq => B(eval(env,e1) == eval(env,e2))
+          case Ne => B(eval(env,e1) != eval(env,e2))
+          case Gt|Lt|Ge|Le => B(inequalityVal(bop,e1,e2))
+          case Seq => {
+            eval(env,e1)
+            return eval(env,e2)
+          }
+        }
+      }
+      case Unary(uop, e1) => {
+        uop match{
+          case Neg => N(-toNumber(eval(env,e1)))
+          case Not => B(!toBoolean(eval(env,e1)))
+        }
+      }
       
       /* Inductive Cases */
       case Print(e1) => println(pretty(eval(env, e1))); Undefined
