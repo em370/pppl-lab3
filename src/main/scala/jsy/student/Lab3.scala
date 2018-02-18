@@ -152,7 +152,14 @@ object Lab3 extends JsyApplication with Lab3Like {
 
         // ****** Your cases here
 
-      case Call(e1, e2) => ???
+      case Call(e1, e2) => {
+        e1 match {
+          case Function(None, x, efun) =>  eval(extend(env,x,eval(env,e2)),efun)
+         // case Funtion(Some)
+          case _ => throw new DynamicTypeError(e)
+
+        }
+      }
       case _ => ??? // delete this line when done
     }
   }
