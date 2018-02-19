@@ -234,6 +234,7 @@ object Lab3 extends JsyApplication with Lab3Like {
 
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
+      case Unary(uop,e1) => Unary(uop,step(e1))
       
         // ****** Your cases here
 
