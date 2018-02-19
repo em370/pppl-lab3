@@ -186,14 +186,14 @@ object Lab3 extends JsyApplication with Lab3Like {
     e match {
       case N(_) | B(_) | Undefined | S(_) => e
       case Print(e1) => Print(substitute(e1, v, x))
-      case Unary(uop, e1) => ???
-      case Binary(bop, e1, e2) => ???
-      case If(e1, e2, e3) => ???
-      case Call(e1, e2) => ???
-      case Var(y) => ???
-      case Function(None, y, e1) => ???
-      case Function(Some(y1), y2, e1) => ???
-      case ConstDecl(y, e1, e2) => ???
+      case Unary(uop, e1) => Unary(uop,substitute(e1,v,x))
+      case Binary(bop, e1, e2) => Binary(bop, substitute(e1,v,x),substitute(e2,v,x))
+      case If(e1, e2, e3) => If(substitute(e1,v,x),substitute(e2,v,x),substitute(e3,v,x))
+      case Call(e1, e2) => Call(substitute(e1,v,x),substitute(e2,v,x))
+      case Var(y) => if (y==x) v else e
+      case Function(None, y, e1) => if(y==x) e else Function(None, y, substitute(e1,v,x))
+      case Function(Some(y1), y2, e1) => if(x==y2 || x==y1) e else Function(Some(y1), y2, substitute(e1,v,x))
+      case ConstDecl(y, e1, e2) => ConstDecl(y,substitute(e1,v,x),e2)
     }
   }
     
@@ -230,7 +230,7 @@ object Lab3 extends JsyApplication with Lab3Like {
         case Function(None,x,e1)=> substitute(e1,v2,x)
         case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
       }
-      
+
 
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
