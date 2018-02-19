@@ -225,7 +225,12 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Binary(And,v1,e2) => if(toBoolean(v1)) e2 else v1
       case Binary(Or,v1,e2) => if(toBoolean(v1)) v1 else e2
       case If(v1,e2,e3) => if(toBoolean(v1)) e2 else e3
-      //case ConstDecl()
+      case ConstDecl(x,v1,e2) => substitute(e2,v1,x)
+      case Call(v1,v2)=> v1 match {
+        case Function(None,x,e1)=> substitute(e1,v2,x)
+        case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
+      }
+      
 
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
