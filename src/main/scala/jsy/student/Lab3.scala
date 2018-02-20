@@ -196,37 +196,44 @@ object Lab3 extends JsyApplication with Lab3Like {
       case ConstDecl(y, e1, e2) => ConstDecl(y,substitute(e1,v,x),e2)
     }
   }
-    
+
+  def isVal(e:Expr): Boolean ={
+    e match{
+      case (N(_)|B(_)|S(_)|Undefined|Function(_,_,_)) => true
+      case _ => false
+    }
+  } // I didn't realize this already existed
+
   def step(e: Expr): Expr = {
     e match {
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
         // ****** Your cases here
-      case Unary(Neg,v1) => N(-toNumber(v1))
-      case Unary(Not,v1) => B(!toBoolean(v1))
-      case Binary(Seq,v1,e2) => {
+      case Unary(Neg,v1) if(isVal(v1))=> N(-toNumber(v1))
+      case Unary(Not,v1) if(isVal(v1))=> B(!toBoolean(v1))
+      case Binary(Seq,v1,e2) if(isVal(v1))=> {
         v1
         e2
       }
-      case Binary(Plus,v1,v2) => {
+      case Binary(Plus,v1,v2) if(isVal(v1)&&isVal(v2)) => {
         (v1,v2) match{
           case (S(s),_) => S(s+toStr(v2))
           case (_,S(s)) => S(toStr(v1)+s)
           case _ =>N(toNumber(v1)+toNumber(v2))
         }
       }
-      case Binary(Minus,v1,v2) => N(toNumber(v1)-toNumber(v2))
-      case Binary(Times,v1,v2) => N(toNumber(v1)*toNumber(v2))
-      case Binary(Div,v1,v2) => N(toNumber(v1)/toNumber(v2))
-      case Binary(bop@(Gt|Ge|Lt|Le),v1,v2) => B(inequalityVal(bop,v1,v2))
-      case Binary(Eq,v1,v2) => B(v1==v2)
-      case Binary(Ne,v1,v2) => B(v1!=v2)
-      case Binary(And,v1,e2) => if(toBoolean(v1)) e2 else v1
-      case Binary(Or,v1,e2) => if(toBoolean(v1)) v1 else e2
-      case If(v1,e2,e3) => if(toBoolean(v1)) e2 else e3
-      case ConstDecl(x,v1,e2) => substitute(e2,v1,x)
-      case Call(v1,v2)=> v1 match {
+      case Binary(Minus,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)-toNumber(v2))
+      case Binary(Times,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)*toNumber(v2))
+      case Binary(Div,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)/toNumber(v2))
+      case Binary(bop@(Gt|Ge|Lt|Le),v1,v2) if(isVal(v1)&&isVal(v2)) => B(inequalityVal(bop,v1,v2))
+      case Binary(Eq,v1,v2) if(isVal(v1)&&isVal(v2)) => B(v1==v2)
+      case Binary(Ne,v1,v2) if(isVal(v1)&&isVal(v2)) => B(v1!=v2)
+      case Binary(And,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) e2 else v1
+      case Binary(Or,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) v1 else e2
+      case If(v1,e2,e3) if(isVal(v1)) => if(toBoolean(v1)) e2 else e3
+      case ConstDecl(x,v1,e2) if(isVal(v1)) => substitute(e2,v1,x)
+      case Call(v1,v2) if(isVal(v1)&&isVal(v2)) => v1 match {
         case Function(None,x,e1)=> substitute(e1,v2,x)
         case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
       }
@@ -235,7 +242,17 @@ object Lab3 extends JsyApplication with Lab3Like {
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
       case Unary(uop,e1) => Unary(uop,step(e1))
-      
+      case Binary(bop,e1,e2)=> bop match {
+        case (Plus|Minus|Times|Div|Gt|Lt|Ge|Le) => Binary(bop,step(e1),step(e2))
+        case _ => Binary(bop,step(e1),e2)
+      }
+      //case Binary(bop@(Plus|Minus|Times|Div|Gt|Lt|Ge|Le) ,v1,e2)=> Binary(bop,v1,step(e2))
+      case Binary(bop@(Eq|Ne),e1,e2) if(e1 != Function) => Binary(Eq,step(e1),step(e2))
+      case If(e1,e2,e3) => If(step(e1),e2,e3)
+      case ConstDecl(x,e1,e2) => ConstDecl(x,step(e1),e2)
+      case Call(e1,e2)=> Call(step(e1),e2)
+
+
         // ****** Your cases here
 
       /* Cases that should never match. Your cases above should ensure this. */
