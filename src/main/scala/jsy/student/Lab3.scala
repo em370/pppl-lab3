@@ -169,7 +169,7 @@ object Lab3 extends JsyApplication with Lab3Like {
         }
       }
 
-      case _ => ??? // delete this line when done
+      //case _ => ??? // delete this line when done
     }
   }
     
@@ -177,7 +177,12 @@ object Lab3 extends JsyApplication with Lab3Like {
   /* Small-Step Interpreter with Static Scoping */
 
   def iterate(e0: Expr)(next: (Expr, Int) => Option[Expr]): Expr = {
-    def loop(e: Expr, n: Int): Expr = if(isValue(e)) e else loop(step(e),n+1)
+    def loop(e: Expr, n: Int): Expr = {
+      next(e,n) match {
+        case Some(en) => loop(en,n+1)
+        case None => e
+      }
+    }//if(isValue(e)) e else loop(step(e),n+1)
     loop(e0, 0)
   }
   
@@ -210,8 +215,8 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
         // ****** Your cases here
-      case Unary(Neg,v1) if(isVal(v1))=> N(-toNumber(v1))
-      case Unary(Not,v1) if(isVal(v1))=> B(!toBoolean(v1))
+      case Unary(Neg,v1) if(isValue(v1))=> N(-toNumber(v1))
+      case Unary(Not,v1) if(isValue(v1))=> B(!toBoolean(v1))
       case Binary(Seq,v1,e2) if(isVal(v1))=> {
         v1
         e2
@@ -241,17 +246,19 @@ object Lab3 extends JsyApplication with Lab3Like {
 
       /* Inductive Cases: Search Rules */
       case Print(e1) => Print(step(e1))
-      case Unary(uop,e1) => Unary(uop,step(e1))
-      case Binary(bop,e1,e2)=> bop match {
-        case (Plus|Minus|Times|Div|Gt|Lt|Ge|Le) => Binary(bop,step(e1),step(e2))
-        case _ => Binary(bop,step(e1),e2)
-      }
+      case Unary(uop,e1) if(!isValue(e1))=> Unary(uop,step(e1))
+      case Binary(bop,e1,e2) if(!isValue(e1)) => Binary(bop,step(e1),e2)
+      case Binary(bop@((Plus|Minus|Times|Div|Gt|Lt|Ge|Le)),e1,e2) if(!isValue(e2)) => Binary(bop,e1,step(e2))
+      //case Binary(bop,e1,e2)=> bop match {
+        //case (Plus|Minus|Times|Div|Gt|Lt|Ge|Le) => Binary(bop,step(e1),step(e2))
+        //case _ => Binary(bop,step(e1),e2)
+      //}
       //case Binary(bop@(Plus|Minus|Times|Div|Gt|Lt|Ge|Le) ,v1,e2)=> Binary(bop,v1,step(e2))
-      case Binary(bop@(Eq|Ne),e1,e2) if(e1 != Function) => Binary(Eq,step(e1),step(e2))
+      case Binary(bop@(Eq|Ne),e1,e2) if(e1 != Function) => Binary(bop,step(e1),step(e2))
       case If(e1,e2,e3) => If(step(e1),e2,e3)
       case ConstDecl(x,e1,e2) => ConstDecl(x,step(e1),e2)
-      case Call(e1,e2)=> Call(step(e1),e2)
-
+      case Call(v1,e2) if(isVal(v1)) => Call(v1,step(e2))
+      case Call(e1,v2) if(isVal(v2)) => Call(step(e1),v2)
 
         // ****** Your cases here
 
