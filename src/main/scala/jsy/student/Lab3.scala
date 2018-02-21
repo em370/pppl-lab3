@@ -159,11 +159,17 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Print(e1) => println(pretty(eval(env, e1))); Undefined
 
         // ****** Your cases here
-
+      case If(e1,e2,e3) => if(toBoolean(eval(env,e1))) eval(env,e2) else eval(env,e3)
       case Call(e1, e2) => {
-        e1 match {
-          case Function(None, x, efun) =>  eval(extend(env,x,eval(env,e2)),efun)
-          case Function(Some(y),x,efun) => eval(extend(extend(env,y,eval(env,e1)),x,eval(env,e2)),efun)
+        val v2 = eval(env,e2)
+        val v1 = eval(env,e1)
+        eval(env,e1) match {
+          case Function(None, x, ef) =>  eval(extend(env,x,v2),ef)
+          case Function(Some(x1),x2,ef) =>{
+            val env2 = extend(env,x2,v2)
+            val env3 = extend(env2,x1,v1)
+            eval(env3,ef)
+          }
           case _ => throw new DynamicTypeError(e)
 
         }
