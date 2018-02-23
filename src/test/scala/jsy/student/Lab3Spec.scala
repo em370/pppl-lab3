@@ -18,6 +18,14 @@ class Lab3Spec(lab3: Lab3Like) extends FlatSpec {
     assert(evaluate(e2) == e2)
   }
 
+  "not a function" should "error" in{
+    val id = N(1.0)
+    val callexp = Call(id,S("Foo"))
+    intercept[DynamicTypeError]{
+      eval(empty,callexp)
+    }
+  }
+
   "eval/call" should "evaluate a function using big-step semantics" in {
     val f = "f"
     val x = "x"

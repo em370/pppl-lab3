@@ -121,6 +121,7 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Var(x) => lookup(env,x)
       case ConstDecl(x,e1,e2) =>eval(extend(env,x,eval(env,e1)),e2)
       case Binary(bop,e1,e2) => {
+
         bop match{
           case And => if(toBoolean(eval(env,e1))) eval(env,e2) else eval(env,e1)
           case Or => if(toBoolean(eval(env,e1))) eval(env,e1) else eval(env,e2)
@@ -141,7 +142,7 @@ object Lab3 extends JsyApplication with Lab3Like {
             case (Function(_,_,_),_) => throw new DynamicTypeError(e)
             case _ =>B(eval(env,e1) != eval(env,e2))
           }
-          case Gt|Lt|Ge|Le => B(inequalityVal(bop,e1,e2))
+          case Gt|Lt|Ge|Le => B(inequalityVal(bop,eval(env,e1),eval(env,e2)))
           case Seq => {
             eval(env,e1)
             return eval(env,e2)
@@ -154,7 +155,7 @@ object Lab3 extends JsyApplication with Lab3Like {
           case Not => B(!toBoolean(eval(env,e1)))
         }
       }
-      
+
       /* Inductive Cases */
       case Print(e1) => println(pretty(eval(env, e1))); Undefined
 
@@ -198,13 +199,15 @@ object Lab3 extends JsyApplication with Lab3Like {
       case N(_) | B(_) | Undefined | S(_) => e
       case Print(e1) => Print(substitute(e1, v, x))
       case Unary(uop, e1) => Unary(uop,substitute(e1,v,x))
-      case Binary(bop, e1, e2) => Binary(bop, substitute(e1,v,x),substitute(e2,v,x))
+      case Binary(bop , e1, e2) => Binary(bop, substitute(e1,v,x),substitute(e2,v,x))
       case If(e1, e2, e3) => If(substitute(e1,v,x),substitute(e2,v,x),substitute(e3,v,x))
       case Call(e1, e2) => Call(substitute(e1,v,x),substitute(e2,v,x))
       case Var(y) => if (y==x) v else e
       case Function(None, y, e1) => if(y==x) e else Function(None, y, substitute(e1,v,x))
       case Function(Some(y1), y2, e1) => if(x==y2 || x==y1) e else Function(Some(y1), y2, substitute(e1,v,x))
-      case ConstDecl(y, e1, e2) => ConstDecl(y,substitute(e1,v,x),e2)
+      case ConstDecl(y, e1, e2) if (y!=x)=> ConstDecl(y,substitute(e1,v,x),substitute(e2,v,x))
+      case ConstDecl(y,e1,e2) => ConstDecl(y,substitute(e1,v,x),e2)
+
     }
   }
 
@@ -217,16 +220,21 @@ object Lab3 extends JsyApplication with Lab3Like {
 
   def step(e: Expr): Expr = {
     e match {
+
+
+
+        //errors
+      case Binary(bop@(Eq|Ne),Function(_,_,_),_) => throw new DynamicTypeError(e)
+      case Binary(bop@(Eq|Ne),_,Function(_,_,_)) => throw new DynamicTypeError(e)
+      //case Binary(bop@(Eq|Ne),Function(_,_,_),Function(_,_,_)) => throw new DynamicTypeError(e)
+
       /* Base Cases: Do Rules */
       case Print(v1) if isValue(v1) => println(pretty(v1)); Undefined
       
         // ****** Your cases here
       case Unary(Neg,v1) if(isValue(v1))=> N(-toNumber(v1))
       case Unary(Not,v1) if(isValue(v1))=> B(!toBoolean(v1))
-      case Binary(Seq,v1,e2) if(isVal(v1))=> {
-        v1
-        e2
-      }
+      case Binary(Seq,v1,e2) if(isVal(v1))=> e2
       case Binary(Plus,v1,v2) if(isVal(v1)&&isVal(v2)) => {
         (v1,v2) match{
           case (S(s),_) => S(s+toStr(v2))
@@ -242,11 +250,13 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Binary(Ne,v1,v2) if(isVal(v1)&&isVal(v2)) => B(v1!=v2)
       case Binary(And,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) e2 else v1
       case Binary(Or,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) v1 else e2
+      case Binary(Seq,v1,e2) if(isValue(v1)) => e2
       case If(v1,e2,e3) if(isVal(v1)) => if(toBoolean(v1)) e2 else e3
       case ConstDecl(x,v1,e2) if(isVal(v1)) => substitute(e2,v1,x)
       case Call(v1,v2) if(isVal(v1)&&isVal(v2)) => v1 match {
         case Function(None,x,e1)=> substitute(e1,v2,x)
         case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
+        case _ => throw new DynamicTypeError(e)
       }
 
 
