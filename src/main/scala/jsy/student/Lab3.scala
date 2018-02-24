@@ -44,8 +44,8 @@ object Lab3 extends JsyApplication with Lab3Like {
       case N(n) => n
       case B(false) => 0
       case B(true) => 1
-      case Undefined => 0
-      case S(s) => s.toDouble
+      case Undefined => Double.NaN
+      case S(s) => try {s.toDouble} catch {case _ => Double.NaN}
       case Function(_, _, _) => Double.NaN
     }
   }
@@ -164,7 +164,7 @@ object Lab3 extends JsyApplication with Lab3Like {
       case Call(e1, e2) => {
         val v2 = eval(env,e2)
         val v1 = eval(env,e1)
-        eval(env,e1) match {
+        v1 match {
           case Function(None, x, ef) =>  eval(extend(env,x,v2),ef)
           case Function(Some(x1),x2,ef) =>{
             val env2 = extend(env,x2,v2)
@@ -234,26 +234,26 @@ object Lab3 extends JsyApplication with Lab3Like {
         // ****** Your cases here
       case Unary(Neg,v1) if(isValue(v1))=> N(-toNumber(v1))
       case Unary(Not,v1) if(isValue(v1))=> B(!toBoolean(v1))
-      case Binary(Seq,v1,e2) if(isVal(v1))=> e2
-      case Binary(Plus,v1,v2) if(isVal(v1)&&isVal(v2)) => {
+      case Binary(Seq,v1,e2) if(isValue(v1))=> e2
+      case Binary(Plus,v1,v2) if(isValue(v1)&&isValue(v2)) => {
         (v1,v2) match{
           case (S(s),_) => S(s+toStr(v2))
           case (_,S(s)) => S(toStr(v1)+s)
           case _ =>N(toNumber(v1)+toNumber(v2))
         }
       }
-      case Binary(Minus,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)-toNumber(v2))
-      case Binary(Times,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)*toNumber(v2))
-      case Binary(Div,v1,v2) if(isVal(v1)&&isVal(v2)) => N(toNumber(v1)/toNumber(v2))
-      case Binary(bop@(Gt|Ge|Lt|Le),v1,v2) if(isVal(v1)&&isVal(v2)) => B(inequalityVal(bop,v1,v2))
-      case Binary(Eq,v1,v2) if(isVal(v1)&&isVal(v2)) => B(v1==v2)
-      case Binary(Ne,v1,v2) if(isVal(v1)&&isVal(v2)) => B(v1!=v2)
-      case Binary(And,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) e2 else v1
-      case Binary(Or,v1,e2) if(isVal(v1)) => if(toBoolean(v1)) v1 else e2
+      case Binary(Minus,v1,v2) if(isValue(v1)&&isValue(v2)) => N(toNumber(v1)-toNumber(v2))
+      case Binary(Times,v1,v2) if(isValue(v1)&&isValue(v2)) => N(toNumber(v1)*toNumber(v2))
+      case Binary(Div,v1,v2) if(isValue(v1)&&isValue(v2)) => N(toNumber(v1)/toNumber(v2))
+      case Binary(bop@(Gt|Ge|Lt|Le),v1,v2) if(isValue(v1)&&isValue(v2)) => B(inequalityVal(bop,v1,v2))
+      case Binary(Eq,v1,v2) if(isValue(v1)&&isValue(v2)) => B(v1==v2)
+      case Binary(Ne,v1,v2) if(isValue(v1)&&isValue(v2)) => B(v1!=v2)
+      case Binary(And,v1,e2) if(isValue(v1)) => if(toBoolean(v1)) e2 else v1
+      case Binary(Or,v1,e2) if(isValue(v1)) => if(toBoolean(v1)) v1 else e2
       case Binary(Seq,v1,e2) if(isValue(v1)) => e2
-      case If(v1,e2,e3) if(isVal(v1)) => if(toBoolean(v1)) e2 else e3
-      case ConstDecl(x,v1,e2) if(isVal(v1)) => substitute(e2,v1,x)
-      case Call(v1,v2) if(isVal(v1)&&isVal(v2)) => v1 match {
+      case If(v1,e2,e3) if(isValue(v1)) => if(toBoolean(v1)) e2 else e3
+      case ConstDecl(x,v1,e2) if(isValue(v1)) => substitute(e2,v1,x)
+      case Call(v1,v2) if(isValue(v1)&&isValue(v2)) => v1 match {
         case Function(None,x,e1)=> substitute(e1,v2,x)
         case Function(Some(x1),x2,e1) => substitute(substitute(e1,v1,x1),v2,x2)
         case _ => throw new DynamicTypeError(e)
@@ -270,11 +270,12 @@ object Lab3 extends JsyApplication with Lab3Like {
         //case _ => Binary(bop,step(e1),e2)
       //}
       //case Binary(bop@(Plus|Minus|Times|Div|Gt|Lt|Ge|Le) ,v1,e2)=> Binary(bop,v1,step(e2))
-      case Binary(bop@(Eq|Ne),e1,e2) if(e1 != Function) => Binary(bop,step(e1),step(e2))
+      case Binary(bop@(Eq|Ne),e1,e2) if(e1 != Function) => Binary(bop,e1,step(e2))
       case If(e1,e2,e3) => If(step(e1),e2,e3)
       case ConstDecl(x,e1,e2) => ConstDecl(x,step(e1),e2)
-      case Call(v1,e2) if(isVal(v1)) => Call(v1,step(e2))
-      case Call(e1,v2) if(isVal(v2)) => Call(step(e1),v2)
+
+      case Call(v1,e2) if(isValue(v1)) => Call(v1,step(e2))
+      case Call(e1,v2) if(isValue(v2)) => Call(step(e1),v2)
 
         // ****** Your cases here
 
