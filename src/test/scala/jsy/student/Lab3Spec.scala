@@ -390,6 +390,20 @@ class Lab3Spec(lab3: Lab3Like) extends FlatSpec {
       }
     }
 
+    "DoStatic" should "perform Static" in {
+
+      assertResult(N(2)) {
+        iterateStep(parse("const x =1;const f =function f(z) {return z+x}; const x=2; f(1)"))
+      }
+    }
+
+    "EvalDynamic" should "perform Dynamic" in {
+
+      assertResult(N(3)) {
+        evaluate(parse("const x =1;const f =function f(z) {return z+x}; const x=2; f(1)"))
+      }
+    }
+
 
 
     "SearchUnary" should "perform SearchUnary" in {

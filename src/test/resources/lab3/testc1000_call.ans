@@ -1,0 +1,10 @@
+# Evaluating ...
+1.1
+# Stepping ...
+##    0: ConstDecl(y,N(8.0),ConstDecl(f,Function(Some(f),x,Binary(Eq,Var(x),Var(y))),Binary(Plus,Call(Var(f),N(8.0)),N(0.1))))
+##    1: ConstDecl(f,Function(Some(f),x,Binary(Eq,Var(x),N(8.0))),Binary(Plus,Call(Var(f),N(8.0)),N(0.1)))
+##    2: Binary(Plus,Call(Function(Some(f),x,Binary(Eq,Var(x),N(8.0))),N(8.0)),N(0.1))
+##    3: Binary(Plus,Binary(Eq,N(8.0),N(8.0)),N(0.1))
+##    4: Binary(Plus,B(true),N(0.1))
+##    5: N(1.1)
+1.1

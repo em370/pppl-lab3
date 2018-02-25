@@ -1,0 +1,12 @@
+# Evaluating ...
+8
+# Stepping ...
+##    0: ConstDecl(x,N(5.0),ConstDecl(f,Function(Some(f),z,Binary(Plus,Var(z),Var(x))),ConstDecl(x,N(2.0),If(Binary(Gt,N(17.0),N(16.0)),Call(Var(f),N(6.0)),Call(Var(f),N(10.0))))))
+##    1: ConstDecl(f,Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),ConstDecl(x,N(2.0),If(Binary(Gt,N(17.0),N(16.0)),Call(Var(f),N(6.0)),Call(Var(f),N(10.0)))))
+##    2: ConstDecl(x,N(2.0),If(Binary(Gt,N(17.0),N(16.0)),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(6.0)),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(10.0))))
+##    3: If(Binary(Gt,N(17.0),N(16.0)),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(6.0)),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(10.0)))
+##    4: If(B(true),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(6.0)),Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(10.0)))
+##    5: Call(Function(Some(f),z,Binary(Plus,Var(z),N(5.0))),N(6.0))
+##    6: Binary(Plus,N(6.0),N(5.0))
+##    7: N(11.0)
+11

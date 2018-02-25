@@ -23,5 +23,5 @@ parse("x => y => x + y")
 parse("x => { const z = 3; return x + z }")
 parse("function (x) { const z = 3; return x + z }")
 parse("const f = function f(x) { return x === 0 ? 1 : x * f(x - 1) }; f(8) + 0.1")
-
+parse("true?1:2")
 iterateStep(parse("console.log(1),2"))

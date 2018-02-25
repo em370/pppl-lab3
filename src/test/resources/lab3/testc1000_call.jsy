@@ -1,2 +1,3 @@
-const f = function f(x) { return x === 0 ? 1 : x * f(x - 1) };
+const y = 8
+const f = function f(x) { return x === y };
 f(8) + 0.1
